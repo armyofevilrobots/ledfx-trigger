@@ -98,9 +98,13 @@ pub(crate) fn launch_taskbar_icon(
         }
 
         gtk::init().expect("Failed to initialize GTK for taskbar icon.");
+        gtk::glib::functions::set_application_name("LedFx-Trigger");
         let the_tray_icon = TrayIconBuilder::new()
             .with_menu(Box::new(tray_menu))
             .with_icon(icon_enabled.clone())
+            .with_id("LedFx-Trigger")
+            .with_title("LedFx-Trigger")
+            .with_tooltip("LedFx-Trigger")
             .build()
             .unwrap();
 

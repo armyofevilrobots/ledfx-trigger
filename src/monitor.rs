@@ -1,17 +1,17 @@
 use crate::types::AudioConfig;
 use cpal::{
-    traits::{DeviceTrait, HostTrait, StreamTrait},
     Stream,
+    traits::{DeviceTrait, HostTrait, StreamTrait},
 };
 use log::{debug, error, info, trace, warn};
 use std::sync::{
-    atomic::{AtomicBool, Ordering::Relaxed},
     Arc,
+    atomic::{AtomicBool, Ordering::Relaxed},
 };
 
 pub fn setup_audio(audio_config: &AudioConfig) -> anyhow::Result<(Stream, Arc<AtomicBool>)> {
     // Conditionally compile with jack if the feature is specified.
-    warn!("Setting up audio monitor...");
+    info!("Setting up audio monitor...");
     let playing: Arc<AtomicBool> = Arc::new(AtomicBool::new(false));
     #[cfg(all(
         any(
@@ -77,8 +77,7 @@ pub fn setup_audio(audio_config: &AudioConfig) -> anyhow::Result<(Stream, Arc<At
         let rms = 10. * (rms_sum / rms_len as f32).sqrt().log10();
         trace!(
             "RMS VOLUME IS: {}db on {} samples",
-            rms, /*10. * rms.log10()*/
-            rms_len
+            rms, /*10. * rms.log10()*/ rms_len
         );
         if rms_len > 1000 && rms > threshold_db {
             // Minimum sample count for valid volume calculation.
@@ -106,7 +105,6 @@ mod tests {
     use super::*;
     use crate::config::load_config;
     use crate::util::cfg_logging;
-    
 
     //#[test]
     fn test_listen() {
