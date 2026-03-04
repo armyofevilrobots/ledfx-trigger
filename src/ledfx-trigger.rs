@@ -104,7 +104,6 @@ fn main() {
         loop {
             if let Ok(event) = MenuEvent::receiver().try_recv() {
                 info!("Menu Event {event:?}.. is it: {:?}?", quit_menu_id);
-                println!("CLEEK");
                 if event.id.0 == quit_menu_id {
                     should_die = true;
                 }

@@ -1,0 +1,17 @@
+[Unit]
+Description=LEDFX automagical on/off switch
+# Requires=sound.target # network.target
+PartOf=graphical-session.target
+After=network.target sound.target graphical-session.target
+# xdg-desktop-autostart.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=exec
+Restart=always
+RestartSec=5
+ExecStart=ledfx-trigger
+StandardOutput=journal
+
+[Install]
+WantedBy=graphical-session.target
