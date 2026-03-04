@@ -1,7 +1,7 @@
 ledfx-trigger
 =============
 
-Now at 0.2!
+Now at 0.4.3!
 -------------
 
 ![Build Status](https://github.com/armyofevilrobots/ledfx-trigger/actions/workflows/rust.yml/badge.svg)
