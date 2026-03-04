@@ -48,3 +48,8 @@ systemctl --user start ledfx-trigger
 tested outside of Linux (specifically Ubuntu/PopOS 22.04 and Arch). I made this thing to
 scratch my own itch, but it might be useful for other people with a little elbow grease.
 ~Build automation is coming soon.~ -> DONE!
+
+There is a file named `dependencies.arch.txt` which contains a list of packages required
+for this program to work. Most are installed by default, but this makes it explicit if you
+have any linker errors on startup. `pacman -Syu $(cat dependencies.arch.txt)` should do
+the trick for you in that case.
