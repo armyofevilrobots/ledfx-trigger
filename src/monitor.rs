@@ -75,13 +75,9 @@ pub fn setup_audio(audio_config: &AudioConfig) -> anyhow::Result<(Stream, Arc<At
             rms_sum += sample * sample;
         }
         let rms = 10. * (rms_sum / rms_len as f32).sqrt().log10();
-        trace!(
-            "RMS VOLUME IS: {}db on {} samples",
-            rms, /*10. * rms.log10()*/ rms_len
-        );
+        trace!("RMS VOLUME IS: {}db on {} samples", rms, rms_len);
         if rms_len > 1000 && rms > threshold_db {
             // Minimum sample count for valid volume calculation.
-            // println!("Playing because rms {}>{}", rms, -32.);
             upd_playing.store(true, Relaxed);
         } else if upd_playing.load(Relaxed) {
             upd_playing.store(false, Relaxed);
@@ -92,11 +88,9 @@ pub fn setup_audio(audio_config: &AudioConfig) -> anyhow::Result<(Stream, Arc<At
         error!("an error occurred on stream: {}", err);
     }
 
-    let input_stream = input_device.build_input_stream(&config, input_data_fn, err_fn, None)?; //.unwrap();
+    let input_stream = input_device.build_input_stream(&config, input_data_fn, err_fn, None)?;
     input_stream.play()?;
 
-    // Ok(Box::new(host))
-    // Err(anyhow::anyhow!("Fuck it"))
     Ok((input_stream, playing.clone()))
 }
 
@@ -107,6 +101,7 @@ mod tests {
     use crate::util::cfg_logging;
 
     //#[test]
+    #[allow(unused)]
     fn test_listen() {
         let config = load_config(None).unwrap();
         cfg_logging(5, config.logfile);

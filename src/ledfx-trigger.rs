@@ -9,8 +9,6 @@ use std::sync::atomic::Ordering::Relaxed;
 use std::thread::{self, sleep};
 use std::time::Duration;
 use tray_icon::menu::MenuEvent;
-// use wled_json_api_library::structures::state::State;
-// use wled_json_api_library::wled::Wled;
 mod config;
 mod ledfx;
 mod monitor;
@@ -20,9 +18,6 @@ mod util;
 use crate::config::{calc_actual_config_file, load_config};
 use crate::ledfx::playpause;
 use crate::types::*;
-
-// const SERVICE_NAME: &str = "_wled._tcp.local.";
-// const NO_SCHEDULE: LEDScheduleSpec = LEDScheduleSpec::None;
 
 fn main() {
     let args = Args::parse();
@@ -56,7 +51,6 @@ fn main() {
 
     let _tray_svc_config = svc_config.clone();
     let (enabled_send, mut enabled_recv) = tokio::sync::broadcast::channel::<bool>(1);
-    let (quit_send, mut quit_recv) = tokio::sync::broadcast::channel::<bool>(1);
     let _enabled_send_svcmon = enabled_send.clone();
 
     if let Some(baseurl) = svc_config.clone().ledfx_url {
@@ -67,9 +61,6 @@ fn main() {
                     info!("Toggling state to: {}", actual_state);
                     if actual_state != state_ledfx_enabled {
                         state_ledfx_enabled = actual_state;
-                        // enabled_send_svcmon
-                        //     .send(actual_state)
-                        //     .expect("Weird failure of internal message: active state broadcast.");
                     }
                 }
                 info!("State watch sleeping...");
@@ -80,19 +71,14 @@ fn main() {
 
     let quit_menu_id = if svc_config.tray_icon {
         info!("Starting up tray icon...");
-        systray::launch_taskbar_icon(
-            enabled_send.clone(),
-            enabled_send.subscribe(),
-            quit_send.clone(),
-            quit_send.subscribe(),
-        )
+        systray::launch_taskbar_icon(enabled_send.clone())
     } else {
         "NONE".to_string()
     };
 
     let _next_ledfx_transition = svc_config.next_ledfx_transition();
     info!("==========================================================");
-    info!("= ledfx-trigger booting...");
+    info!("= ledfx-trigger booting...                               =");
     info!("==========================================================");
     info!("Loaded config: {:?}", &svc_config);
 
@@ -119,10 +105,6 @@ fn main() {
                 if event.id.0 == quit_menu_id {
                     should_die = true;
                 }
-            }
-            if let Ok(msg) = quit_recv.try_recv() {
-                info!("Quit recv just popped a message! {}", msg);
-                should_die = msg;
             }
             if let Ok(enabled) = enabled_recv.try_recv() {
                 info!("Got a SELF enabled message of: {}", enabled);
@@ -183,13 +165,11 @@ fn main() {
                 }
             } // Locking die arc...
 
-            //std::thread::sleep(Duration::from_secs(10));
             sleep(Duration::from_secs_f64(svc_config.cycle_seconds));
         } // Loop wleds
         match svc_config.restart_on_cfg_change {
             CfgChangeAction::No => (),
             CfgChangeAction::Exit => {
-                info!("Exiting due to a config change.");
                 std::process::exit(0);
             }
             CfgChangeAction::Reload => {
@@ -200,7 +180,6 @@ fn main() {
                 svc_config = match load_config(args.config_path.clone()) {
                     Ok(config) => config,
                     Err(err) => {
-                        // panic!("Failed to load config: {:?}", err),
                         eprintln!("Failed to load config: {:?}", err);
                         std::process::exit(-1);
                     }

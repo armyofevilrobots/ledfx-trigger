@@ -1,9 +1,7 @@
 use log::info;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use tray_icon::menu::{
-    AboutMetadata, CheckMenuItemBuilder, Menu, MenuItem, PredefinedMenuItem,
-};
+use tray_icon::menu::{AboutMetadata, CheckMenuItemBuilder, Menu, MenuItem, PredefinedMenuItem};
 use tray_icon::{Icon, TrayIconBuilder};
 
 pub(crate) fn load_icon(buffer: &[u8]) -> Icon {
@@ -16,8 +14,6 @@ pub(crate) fn load_icon(buffer: &[u8]) -> Icon {
 }
 
 pub(crate) fn load_icons() -> (tray_icon::menu::Icon, tray_icon::Icon, tray_icon::Icon) {
-    // let path = concat!(env!("CARGO_MANIFEST_DIR"), "/resources/aoer_logo_2018.png");
-    // let icon = load_icon(std::path::Path::new(path));
     let (icon_rgba, icon_width, icon_height) = {
         let buffer = include_bytes!("../resources/aoer_logo_2018.png");
         let image = image::load_from_memory(buffer) // open(path)
@@ -38,29 +34,14 @@ pub(crate) fn load_icons() -> (tray_icon::menu::Icon, tray_icon::Icon, tray_icon
     (about_icon, enabled_icon, disabled_icon)
 }
 
-pub(crate) fn launch_taskbar_icon(
-    enabled_send: tokio::sync::broadcast::Sender<bool>,
-    mut playing_recv: tokio::sync::broadcast::Receiver<bool>,
-    _die_send: tokio::sync::broadcast::Sender<bool>,
-    _die_recv: tokio::sync::broadcast::Receiver<bool>,
-) -> String
-// tokio::sync::broadcast::Sender<bool>,
-// tokio::sync::broadcast::Sender<bool>,
-{
-    // let config_msg_moved: Arc<Mutex<Option<MenuId>>> = Arc::new(Mutex::new(None));
-    // let config_msg = Arc::clone(&config_msg_moved);
-    // let exit_id: Arc<Mutex<Option<MenuId>>> = Arc::new(Mutex::new(None));
+pub(crate) fn launch_taskbar_icon(enabled_send: tokio::sync::broadcast::Sender<bool>) -> String {
     let exit_menu_id: Arc<Mutex<String>> = Arc::new(Mutex::new("UNSET".to_string()));
     let exit_menu_id_return = exit_menu_id.clone();
-    // let exit_msg = Arc::clone(&exit_msg_moved);
-    // let enabled_msg_moved: Arc<Mutex<Option<MenuId>>> = Arc::new(Mutex::new(None));
-    // let enabled_msg = Arc::clone(&enabled_msg_moved);
 
     #[cfg(target_os = "linux")]
     std::thread::spawn(move || {
         let (about_icon, icon_enabled, icon_disabled) = load_icons();
         let tray_menu = Menu::new();
-        // let config_item: MenuItem = MenuItem::new("Web&UI", true, None);
         let quit_item: MenuItem = MenuItem::new("E&xit", true, None);
         let enabled_item = CheckMenuItemBuilder::new()
             .checked(true)
@@ -83,15 +64,10 @@ pub(crate) fn launch_taskbar_icon(
                 ),
                 &PredefinedMenuItem::separator(),
                 &enabled_item,
-                // &PredefinedMenuItem::separator(),
-                // &config_item,
                 &PredefinedMenuItem::separator(),
                 &quit_item,
             ])
             .expect("Unexpected failure building tray menu...");
-        // if let Ok(mut locked_cfg_menuid) = config_msg_moved.lock() {
-        //     *locked_cfg_menuid = Some(config_item.id().clone());
-        // }
         if let Ok(mut locked_exit_menu_id) = exit_menu_id.lock() {
             *locked_exit_menu_id = quit_item.id().0.clone();
         }
@@ -111,12 +87,6 @@ pub(crate) fn launch_taskbar_icon(
         let _quit_state = true;
         loop {
             gtk::main_iteration_do(false);
-
-            if let Ok(enabled) = playing_recv.try_recv() {
-                info!("TRAY Got an enabled message of: {}", enabled);
-                enabled_state = enabled;
-                enabled_item.set_checked(enabled);
-            }
 
             if enabled_item.is_checked() != enabled_state {
                 info!(

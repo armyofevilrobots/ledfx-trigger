@@ -438,7 +438,7 @@ mod test {
     fn test_calc_dimming_schedule() {
         let dispatch = fern::Dispatch::new();
         let colors = ColoredLevelConfig::new().debug(Color::Magenta);
-        let fernlog = dispatch
+        let _fernlog = dispatch
             .level(log::LevelFilter::Trace)
             .level_for("mdns_sd", log::LevelFilter::Warn)
             .level_for("reqwest", log::LevelFilter::Warn)
@@ -461,19 +461,19 @@ mod test {
         let today: chrono::DateTime<chrono::Local> = chrono::Local::now();
         let simple_dimming_schedule = WLEDSchedule::from([
             WLEDScheduleItem {
-                time: ScheduleTime::Time(NaiveTime::from_hms(7, 0, 0)),
+                time: ScheduleTime::Time(NaiveTime::from_hms_opt(7, 0, 0).unwrap()),
                 change: WLEDChange::Brightness(0.2),
             },
             WLEDScheduleItem {
-                time: ScheduleTime::Time(NaiveTime::from_hms(8, 0, 0)),
+                time: ScheduleTime::Time(NaiveTime::from_hms_opt(8, 0, 0).unwrap()),
                 change: WLEDChange::Brightness(0.8),
             },
             WLEDScheduleItem {
-                time: ScheduleTime::Time(NaiveTime::from_hms(19, 0, 0)),
+                time: ScheduleTime::Time(NaiveTime::from_hms_opt(19, 0, 0).unwrap()),
                 change: WLEDChange::Brightness(0.8),
             },
             WLEDScheduleItem {
-                time: ScheduleTime::Time(NaiveTime::from_hms(20, 0, 0)),
+                time: ScheduleTime::Time(NaiveTime::from_hms_opt(20, 0, 0).unwrap()),
                 change: WLEDChange::Brightness(0.2),
             },
         ]);
@@ -482,7 +482,9 @@ mod test {
         println!("DIM PC actual: {:?}", dim_pc);
 
         let dim_pc = calc_led_state_scheduled(
-            today.with_time(NaiveTime::from_hms(19, 30, 0)).unwrap(),
+            today
+                .with_time(NaiveTime::from_hms_opt(19, 30, 0).unwrap())
+                .unwrap(),
             49.,
             -124.,
             &simple_dimming_schedule,
@@ -490,7 +492,9 @@ mod test {
 
         println!("DIM PC at 7:30PM: {:?}", dim_pc);
         let dim_pc = calc_led_state_scheduled(
-            today.with_time(NaiveTime::from_hms(7, 30, 0)).unwrap(),
+            today
+                .with_time(NaiveTime::from_hms_opt(7, 30, 0).unwrap())
+                .unwrap(),
             49.,
             -124.,
             &simple_dimming_schedule,
@@ -498,7 +502,9 @@ mod test {
         println!("DIM PC at 7:30AM: {:?}", dim_pc);
 
         let dim_pc = calc_led_state_scheduled(
-            today.with_time(NaiveTime::from_hms(0, 0, 0)).unwrap(),
+            today
+                .with_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
+                .unwrap(),
             49.,
             -124.,
             &simple_dimming_schedule,
@@ -510,7 +516,7 @@ mod test {
     fn test_calc_dimming() {
         let today: chrono::DateTime<chrono::Local> = chrono::Local::now();
         let today_date = today.date_naive();
-        let (sunrise_time, sunset_time) = sunrise::sunrise_sunset(
+        let (_sunrise_time, sunset_time) = sunrise::sunrise_sunset(
             49_f64,
             -124_f64,
             today_date.year(),

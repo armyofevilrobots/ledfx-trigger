@@ -386,7 +386,7 @@ mod test {
         println!("Sunset-3600 today is/was {:?}", datetime);
         println!("That TS is {}", st_ts);
 
-        let st = ScheduleTime::Time(chrono::NaiveTime::from_hms(12, 00, 00));
+        let st = ScheduleTime::Time(chrono::NaiveTime::from_hms_opt(12, 00, 00).unwrap());
         let st_ts = st.to_timestamp(49., -124.);
         let datetime = chrono::DateTime::from_timestamp(st_ts as i64, 0)
             .expect("Invalid datetime")
@@ -394,7 +394,7 @@ mod test {
         println!("Naive noon today is/was {:?}", datetime);
         println!("That TS is {}", st_ts);
 
-        let st = ScheduleTime::Time(chrono::NaiveTime::from_hms(21, 50, 00));
+        let st = ScheduleTime::Time(chrono::NaiveTime::from_hms_opt(21, 50, 00).unwrap());
         let st_ts = st.to_timestamp(49., -124.);
         let datetime = chrono::DateTime::from_timestamp(st_ts as i64, 0)
             .expect("Invalid datetime")

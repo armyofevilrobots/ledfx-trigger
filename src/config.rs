@@ -87,15 +87,3 @@ pub fn load_config(cfg_path: Option<PathBuf>) -> Result<Config> {
     cfg.config_path = Some(cfgdir.clone());
     Ok(cfg)
 }
-
-#[cfg(test)]
-/* These tests are f%^(@*# awful, because they mutate files. */
-mod tests {
-    use super::*;
-
-    // #[test]
-    // fn test_setup_homedir() {
-    //     let cfg = load_config(None).expect("Failed to load config from file.");
-    //     assert!(cfg.loglevel == 4);
-    // }
-}
