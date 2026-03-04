@@ -55,13 +55,6 @@ pub enum ScheduleTime {
 impl ScheduleTime {
     pub fn to_timestamp(&self, lat: f64, lon: f64) -> u64 {
         let today_date = chrono::Local::now();
-        // let tz = today_date.timezone();
-        // println!("TZ IS {:?}", tz);
-        // let offset = tz
-        //     .offset_from_local_datetime(&today_date.naive_local())
-        //     .unwrap();
-        // println!("Offset is {:?} ({}s)", offset, offset.utc_minus_local());
-        // let offset_seconds = offset.utc_minus_local() as u64;
         #[allow(deprecated)]
         let today_date = today_date.date();
         match self {
