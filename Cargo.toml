@@ -13,18 +13,18 @@ jack = ["cpal/jack"]
 #name = "aoer-wled-doppler"
 #path = "src/main.rs"
 
-[[bin]]
-name = "ledfx-trigger-failed-idea"
-path = "src/ledfx-trigger-failed-idea.rs"
+# [[bin]]
+# name = "ledfx-trigger-failed-idea"
+# path = "src/ledfx-trigger-failed-idea.rs"
 
 
 [[bin]]
 name = "ledfx-trigger"
 path = "src/ledfx-trigger.rs"
 
-[[bin]]
-name = "ledfx-trigger-new"
-path = "src/ledfx-trigger-new.rs"
+# [[bin]]
+# name = "ledfx-trigger-new"
+# path = "src/ledfx-trigger-new.rs"
 # [[bin]]
 # name = "uimock"
 # path = "src/uimock.rs"

@@ -1,1 +1,4 @@
 /target
+ledfx-trigger-*.rs
+systray_ev.rs
+*._rs

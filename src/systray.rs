@@ -94,13 +94,8 @@ pub(crate) fn launch_taskbar_icon(
         //     *locked_cfg_menuid = Some(config_item.id().clone());
         // }
         if let Ok(mut locked_exit_menu_id) = exit_menu_id.lock() {
-            println!("The quit menu id is {}", quit_item.id().0);
             *locked_exit_menu_id = quit_item.id().0.clone();
-            println!("Setting mutex value to: {}", locked_exit_menu_id);
         }
-        // if let Ok(mut locked_enabled_menuid) = enabled_msg_moved.lock() {
-        //     *locked_enabled_menuid = Some(enabled_item.id().clone());
-        // }
 
         gtk::init().expect("Failed to initialize GTK for taskbar icon.");
         let the_tray_icon = TrayIconBuilder::new()
@@ -112,13 +107,8 @@ pub(crate) fn launch_taskbar_icon(
         let mut enabled_state = true;
         let mut quit_state = true;
         loop {
-            // println!("TRAY THINKS IT IS ENABLED: {}", enabled_state);
-
             gtk::main_iteration_do(false);
 
-            // if let Ok(event) = MenuEvent::receiver().try_recv() {
-            //     debug!("Menu Event {event:?}");
-            // }
             if let Ok(enabled) = playing_recv.try_recv() {
                 info!("TRAY Got an enabled message of: {}", enabled);
                 enabled_state = enabled;
@@ -135,9 +125,13 @@ pub(crate) fn launch_taskbar_icon(
                     .expect("Oh darn. My broadcast socket died!");
                 enabled_state = enabled_item.is_checked();
                 if enabled_state {
-                    the_tray_icon.set_icon(Some(icon_enabled.clone()));
+                    the_tray_icon
+                        .set_icon(Some(icon_enabled.clone()))
+                        .expect("Failed to change icon for task_icon.");
                 } else {
-                    the_tray_icon.set_icon(Some(icon_disabled.clone()));
+                    the_tray_icon
+                        .set_icon(Some(icon_disabled.clone()))
+                        .expect("Failed to change icon for task_icon.");
                 }
             }
             std::thread::sleep(Duration::from_millis(20));
