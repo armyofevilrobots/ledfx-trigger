@@ -1,7 +1,7 @@
 [package]
 name = "aoer-wled-doppler"
 version = "0.3.0"
-edition = "2021"
+edition = "2024"
 # default-run = "aoer-wled-doppler"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -14,9 +14,17 @@ jack = ["cpal/jack"]
 #path = "src/main.rs"
 
 [[bin]]
+name = "ledfx-trigger-failed-idea"
+path = "src/ledfx-trigger-failed-idea.rs"
+
+
+[[bin]]
 name = "ledfx-trigger"
 path = "src/ledfx-trigger.rs"
 
+[[bin]]
+name = "ledfx-trigger-new"
+path = "src/ledfx-trigger-new.rs"
 # [[bin]]
 # name = "uimock"
 # path = "src/uimock.rs"
@@ -40,7 +48,7 @@ ringbuf = "0.4.1"
 ureq = { version = "2.10.0", features = ["json"] }
 serde_json = "1.0.121"
 clap = { version = "4.5.20", features = ["derive"] }
-tray-icon = "0.19.1"
+tray-icon = "0.21.3"
 gtk = "0.18.1"
 image = "0.25.5"
 muda = "0.15.3"
@@ -53,3 +61,6 @@ astra = "0.4.0"
 matchit = "0.8.5"
 http = "1.1.0"
 lazy_static = "1.5.0"
+tokio = {version="1.49.0", features=["sync", "macros"]}
+tray-menu = { version = "0.1.2", features = ["gtk"] }
+system-tray = {version="0.8.5"}#, features=["dbusmenu-gtk3"]}

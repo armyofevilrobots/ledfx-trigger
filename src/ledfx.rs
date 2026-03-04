@@ -12,6 +12,18 @@ pub fn playpause(baseurl: &str, state: bool) -> Result<(), ureq::Error> {
     Ok(())
 }
 
+pub fn is_playing(baseurl: &str)->Result<bool, ureq::Error>{
+    let url = format!("{baseurl}/api/virtuals");
+    let result: serde_json::Value = ureq::get(url.as_str()).call()?.into_json()?;
+    // println!("RESULT: {:?}", result);
+    let current_state = if let Some(serde_json::Value::Bool(ispaused)) = result.get("paused") {
+        true
+    }else{
+        false
+    };
+    Ok(current_state)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

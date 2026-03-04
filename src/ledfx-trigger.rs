@@ -7,11 +7,11 @@ use opener;
 use std::collections::HashMap;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering::Relaxed;
-use std::sync::{Arc, Mutex};
-use std::thread;
+use std::sync::{Arc, LockResult, Mutex};
+use std::thread::{self, sleep};
 use std::time::Duration;
-use tray_icon::menu::MenuEvent;
 use tray_icon::TrayIconEvent;
+use tray_icon::menu::MenuEvent;
 use util::led_set_preset;
 // use wled_json_api_library::structures::state::State;
 // use wled_json_api_library::wled::Wled;
@@ -31,6 +31,11 @@ const SERVICE_NAME: &str = "_wled._tcp.local.";
 
 fn main() {
     let args = Args::parse();
+
+    // These little mutable beauties get toggled by various events.
+    let mut state_ledfx_enabled = true;
+    let mut state_self_enabled = true;
+    let mut should_die = false;
 
     let mut inotify = Inotify::init().expect("Failed to initialize inotify");
     let cfgfile = match args.config_path.clone() {
@@ -54,78 +59,43 @@ fn main() {
         }
     };
 
-    let die_arc: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
-    let die_arc_thread = die_arc.clone();
     let tray_svc_config = svc_config.clone();
-    let mut ledfx_enabled: Arc<Mutex<bool>> = Arc::new(Mutex::new(true));
-    let mut ledfx_enabled_moved = ledfx_enabled.clone();
-    if svc_config.tray_icon {
-        info!("Starting up tray icon...");
-        let (config_msg, exit_msg, enabled_msg) = systray::launch_taskbar_icon();
+    let (enabled_send, mut enabled_recv) = tokio::sync::broadcast::channel::<bool>(1);
+    let (quit_send, mut quit_recv) = tokio::sync::broadcast::channel::<bool>(1);
+    let enabled_send_svcmon = enabled_send.clone();
 
-        thread::spawn(move || loop {
-            if let Ok(event) = TrayIconEvent::receiver().try_recv() {
-                info!("tray event: {event:?}");
+    if let Some(baseurl) = svc_config.clone().ledfx_url {
+        thread::spawn(move || {
+            loop {
+                if let Ok(actual_state) = ledfx::is_playing(baseurl.as_str()) {
+                    info!("Checking enabled state...");
+                    info!("Toggling state to: {}", actual_state);
+                    if actual_state != state_ledfx_enabled {
+                        state_ledfx_enabled = actual_state;
+                        // enabled_send_svcmon
+                        //     .send(actual_state)
+                        //     .expect("Weird failure of internal message: active state broadcast.");
+                    }
+                }
+                info!("State watch sleeping...");
+                sleep(Duration::from_secs(5));
             }
-
-            if let Ok(event) = MenuEvent::receiver().try_recv() {
-                info!("Menu Event {event:?}");
-                if let Ok(qid) = enabled_msg.lock() {
-                    info!("Enabled ledfx is toggled.");
-                    //ledfx_enabled = !ledfx_enabled;
-                    {
-                        let mut enabled = ledfx_enabled_moved
-                            .lock()
-                            .expect("Failed to lock enabled message");
-                        *enabled = !*enabled;
-                    }
-                    //println!("Switched to: {}", &ledfx_enabled);
-                }
-                if let Ok(qid) = exit_msg.lock() {
-                    if let Some(menuid) = qid.as_ref() {
-                        if menuid == event.id() {
-                            error!("Received QUIT from TaskBar icon!");
-                            let mut die = die_arc_thread.lock().unwrap();
-                            *die = true;
-                            break;
-                        }
-                    }
-                }
-                if let Ok(cid) = config_msg.lock() {
-                    if let Some(menuid) = cid.as_ref() {
-                        if menuid == event.id() {
-                            if let Some(urlbase) = &mut tray_svc_config.bind_address.clone() {
-                                // Rewrite the URL if we bound everything.
-                                *urlbase = urlbase.replace("0.0.0.0", "localhost");
-                                info!("Launching browser...");
-                                opener::open_browser(format!("http://{}/", urlbase))
-                                    .unwrap_or_else(|_| warn!("Failed to launch browser."));
-                            }
-                        }
-                    }
-                }
-            }
-            std::thread::sleep(Duration::from_secs_f64(0.1));
         });
     }
 
-    let mut next_ledfx_transition = svc_config.next_ledfx_transition();
-    /*
-    if let Some(ledfx_schedule) = svc_config.ledfx_schedule.clone() {
-        let from_ts = ledfx_schedule
-            .from
-            .to_timestamp(svc_config.lat as f64, svc_config.lon as f64);
-        let until_ts = ledfx_schedule
-            .until
-            .to_timestamp(svc_config.lat as f64, svc_config.lon as f64);
-        if from_ts < until_ts {
-            next_ledfx_transition = Some((ledfx_schedule.from.clone(), true));
-        } else {
-            next_ledfx_transition = Some((ledfx_schedule.until.clone(), false))
-        }
-    }
-    */
+    let quit_menu_id = if svc_config.tray_icon {
+        info!("Starting up tray icon...");
+        systray::launch_taskbar_icon(
+            enabled_send.clone(),
+            enabled_send.subscribe(),
+            quit_send.clone(),
+            quit_send.subscribe(),
+        )
+    } else {
+        "NONE".to_string()
+    };
 
+    let mut next_ledfx_transition = svc_config.next_ledfx_transition();
     info!("==========================================================");
     info!("= ledfx-trigger booting...");
     info!("==========================================================");
@@ -133,17 +103,7 @@ fn main() {
 
     util::cfg_logging(svc_config.loglevel, svc_config.logfile.clone());
     let mdns = ServiceDaemon::new().expect("Failed to create daemon");
-    // let mut last_update = std::time::Instant::now();
-
-    ///// Webserver
-    // if let Some(server_bind) = &svc_config.bind_address {
-    //     info!("Spawning webserver: {}", &server_bind);
-    //     let cfg = svc_config.clone();
-    //     thread::spawn(move || webui::spawn(cfg));
-    // } else {
-    //     info!("No bind config, not spawning webserver.");
-    // }
-    ///// /Webserver
+    info!("Tray icon quit menu id is {}", quit_menu_id);
 
     // OK, now we setup the monitoring...
     let (_stream, playing_arc) = if let Some(ref audio_config) = svc_config.audio_config {
@@ -157,8 +117,23 @@ fn main() {
     let mut inotify_buffer = [0u8; 4096];
     let mut last_command_by_name: HashMap<String, (f32, Option<u16>, Option<bool>)> =
         HashMap::new();
+
     loop {
         loop {
+            if let Ok(event) = MenuEvent::receiver().try_recv() {
+                info!("Menu Event {event:?}.. is it: {:?}?", quit_menu_id);
+                if event.id.0 == quit_menu_id {
+                    should_die = true;
+                }
+            }
+            if let Ok(msg) = quit_recv.try_recv() {
+                info!("Quit recv just popped a message! {}", msg);
+                should_die = msg;
+            }
+            if let Ok(enabled) = enabled_recv.try_recv() {
+                info!("Got a SELF enabled message of: {}", enabled);
+                state_self_enabled = enabled;
+            }
             info!("Checking inotify events...");
             if let Ok(events) = inotify.read_events(&mut inotify_buffer) {
                 let mut should_break: bool = false;
@@ -170,7 +145,7 @@ fn main() {
                     break;
                 }
             }
-            // .read_events_blocking(&mut inotify_buffer)
+
             let now = std::time::Instant::now();
             if playing_arc.load(Relaxed) {
                 debug!("arc says we are playing.");
@@ -181,28 +156,10 @@ fn main() {
                     (quiet_cycles + 1).min(&svc_config.ledfx_idle_cycles.unwrap_or(3) + 1);
             }
             if let Some(baseurl) = &svc_config.ledfx_url {
-                let mut ledfx_enabled_locked = ledfx_enabled.lock().expect("Failed to unlock");
-                debug!("Enabled is set to: {}", ledfx_enabled_locked);
+                // let mut ledfx_enabled_locked = ledfx_enabled.lock().expect("Failed to unlock");
+                debug!("Enabled is set to: {}", state_ledfx_enabled);
                 debug!("Got LEDFX url of {}", baseurl);
-                // First, see if we toggle the state of it...
-                if let Some((next_trigger, next_state)) = &next_ledfx_transition {
-                    debug!(
-                        "Got an enabled state change at {:?} to {:?}",
-                        next_trigger, next_state
-                    );
-                    if next_trigger.to_timestamp(svc_config.lat as f64, svc_config.lon as f64)
-                        < chrono::Local::now().timestamp() as u64
-                    {
-                        if let Some(enabled_state) = next_state {
-                            *ledfx_enabled_locked = *enabled_state;
-                        }
-                        next_ledfx_transition = svc_config.next_ledfx_transition();
-                    }
-                } else {
-                    debug!("NO LEDFX STATE TRIGGER SET");
-                }
-                if quiet_cycles >= svc_config.ledfx_idle_cycles.unwrap_or(3)
-                    || !*ledfx_enabled_locked
+                if quiet_cycles >= svc_config.ledfx_idle_cycles.unwrap_or(3) || !state_self_enabled
                 {
                     // Again, arbitrary
                     debug!("We have been quiet for a couple cycles.");
@@ -226,14 +183,14 @@ fn main() {
             let mut leds_err: usize = 0;
             {
                 // Locking die arc...
-                let die = die_arc.lock().unwrap();
-                if *die {
+                if should_die {
+                    warn!("I should die now!");
                     break;
                 }
             } // Locking die arc...
 
             //std::thread::sleep(Duration::from_secs(10));
-            std::thread::sleep(Duration::from_secs_f64(svc_config.cycle_seconds));
+            sleep(Duration::from_secs_f64(svc_config.cycle_seconds));
         } // Loop wleds
         match svc_config.restart_on_cfg_change {
             CfgChangeAction::No => (),
@@ -266,11 +223,12 @@ fn main() {
             }
         }
         {
-            // Locking die arc...
-            let die = die_arc.lock().unwrap();
-            if *die {
+            if should_die {
                 break;
             }
         } // Locking die arc...
+        if should_die {
+            break;
+        }
     } // Loop inotify
 }

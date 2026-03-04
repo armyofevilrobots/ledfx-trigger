@@ -1,5 +1,5 @@
 use crate::types::*;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use chrono::Datelike;
 use fern::colors::{Color, ColoredLevelConfig};
 use fern::log_file;
@@ -28,7 +28,12 @@ pub(crate) fn cfg_logging(level: usize, log_path: Option<PathBuf>) {
 
 fn configure_logging(loglevel: log::LevelFilter, logfile: Option<PathBuf>) {
     // Configure logger at runtime
-    let colors = ColoredLevelConfig::new().debug(Color::Magenta);
+    println!("Configuring logging...");
+    let colors = ColoredLevelConfig::new()
+        .info(Color::Green)
+        .warn(Color::Yellow)
+        .error(Color::Red)
+        .debug(Color::Magenta);
     let fernlog = fern::Dispatch::new()
         .level(loglevel)
         .level_for("mdns_sd", log::LevelFilter::Warn)
@@ -413,7 +418,6 @@ pub(crate) fn calc_led_state_scheduled(
     }
 
     let mut power_out: Option<bool> = None;
-
 
     (out, preset_out, power_out)
 }
