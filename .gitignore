@@ -2,3 +2,4 @@
 ledfx-trigger-*.rs
 systray_ev.rs
 *._rs
+resources/ledfx_logo_db*
