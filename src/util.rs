@@ -83,6 +83,7 @@ fn configure_logging(loglevel: log::LevelFilter, logfile: Option<PathBuf>) {
 }
 
 /// Set the brightness of the given wled device.
+#[allow(unused)]
 pub fn led_set_preset(wled: &mut WLED, new_preset: u16) -> Result<()> {
     wled.device.state = Some(State {
         on: None,
@@ -124,6 +125,8 @@ pub fn led_set_preset(wled: &mut WLED, new_preset: u16) -> Result<()> {
         }
     }
 }
+
+#[allow(unused)]
 pub fn led_set_power(wled: &mut WLED, power: bool) -> Result<()> {
     wled.device.state = Some(State {
         on: Some(power),
@@ -152,6 +155,7 @@ pub fn led_set_power(wled: &mut WLED, power: bool) -> Result<()> {
 }
 
 /// Set the brightness of the given wled device.
+#[allow(unused)]
 pub fn led_set_brightness(wled: &mut WLED, new_bri: u8) -> Result<()> {
     wled.device.state = Some(State {
         on: if new_bri > 0 { Some(true) } else { Some(false) },
@@ -194,6 +198,7 @@ pub fn led_set_brightness(wled: &mut WLED, new_bri: u8) -> Result<()> {
     }
 }
 
+#[allow(unused)]
 pub fn update_wled_cache(info: &ServiceInfo, found_wled: &mut HashMap<String, WLED>) -> Result<()> {
     let full_name = info.get_fullname().to_string();
     let short_name = info.get_hostname().to_string();
@@ -246,7 +251,7 @@ pub fn update_wled_cache(info: &ServiceInfo, found_wled: &mut HashMap<String, WL
 
 /// Calculates how much we should dim (from 0.0 as no dimming, to 1.0 as fully dimmed)
 /// based on what time of day it is. Contains much magic (of the black datetime variety).
-//#[allow(unused)]
+#[allow(unused)]
 pub fn calc_dim_pc(
     today: chrono::DateTime<chrono::Local>,
     lat: f64,

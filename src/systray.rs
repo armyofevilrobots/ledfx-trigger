@@ -1,9 +1,8 @@
-use log::{debug, info};
+use log::info;
 use std::sync::{Arc, Mutex};
-use std::thread;
 use std::time::Duration;
 use tray_icon::menu::{
-    AboutMetadata, CheckMenuItemBuilder, Menu, MenuEvent, MenuId, MenuItem, PredefinedMenuItem,
+    AboutMetadata, CheckMenuItemBuilder, Menu, MenuItem, PredefinedMenuItem,
 };
 use tray_icon::{Icon, TrayIconBuilder};
 
@@ -40,10 +39,10 @@ pub(crate) fn load_icons() -> (tray_icon::menu::Icon, tray_icon::Icon, tray_icon
 }
 
 pub(crate) fn launch_taskbar_icon(
-    mut enabled_send: tokio::sync::broadcast::Sender<bool>,
+    enabled_send: tokio::sync::broadcast::Sender<bool>,
     mut playing_recv: tokio::sync::broadcast::Receiver<bool>,
-    mut die_send: tokio::sync::broadcast::Sender<bool>,
-    mut die_recv: tokio::sync::broadcast::Receiver<bool>,
+    _die_send: tokio::sync::broadcast::Sender<bool>,
+    _die_recv: tokio::sync::broadcast::Receiver<bool>,
 ) -> String
 // tokio::sync::broadcast::Sender<bool>,
 // tokio::sync::broadcast::Sender<bool>,
@@ -109,7 +108,7 @@ pub(crate) fn launch_taskbar_icon(
             .unwrap();
 
         let mut enabled_state = true;
-        let mut quit_state = true;
+        let _quit_state = true;
         loop {
             gtk::main_iteration_do(false);
 

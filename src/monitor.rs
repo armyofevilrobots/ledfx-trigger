@@ -3,7 +3,7 @@ use cpal::{
     Stream,
     traits::{DeviceTrait, HostTrait, StreamTrait},
 };
-use log::{debug, error, info, trace, warn};
+use log::{debug, error, info, trace};
 use std::sync::{
     Arc,
     atomic::{AtomicBool, Ordering::Relaxed},

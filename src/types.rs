@@ -18,6 +18,7 @@ pub(crate) struct Args {
     // count: u8,
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub enum Device {
     Wled(Wled),
@@ -61,6 +62,7 @@ impl ScheduleTime {
         //     .unwrap();
         // println!("Offset is {:?} ({}s)", offset, offset.utc_minus_local());
         // let offset_seconds = offset.utc_minus_local() as u64;
+        #[allow(deprecated)]
         let today_date = today_date.date();
         match self {
             Self::Time(time) => {
@@ -245,7 +247,11 @@ impl Config {
                     Some((ledfx_schedule.until.clone(), Some(false)))
                 } else {
                     //let tomorrow_midnight = (now + Duration::days(1)).date().and_hms(0, 0, 0);
-                    Some((ScheduleTime::Time(NaiveTime::from_hms(23, 59, 59)), None))
+                    // Some((ScheduleTime::Time(NaiveTime::from_hms(23, 59, 59)), None))
+                    Some((
+                        ScheduleTime::Time(NaiveTime::from_hms_opt(23, 59, 59).unwrap()),
+                        None,
+                    ))
                     // No more transitions tonight
                 }
             }

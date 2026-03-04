@@ -1,18 +1,14 @@
 use clap::Parser;
 use inotify::{Inotify, WatchMask};
 use log::{self, debug, info, warn};
-use log::{error, trace};
-use mdns_sd::{ServiceDaemon, ServiceEvent};
-use opener;
+use mdns_sd::ServiceDaemon;
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering::Relaxed;
-use std::sync::{Arc, LockResult, Mutex};
 use std::thread::{self, sleep};
 use std::time::Duration;
-use tray_icon::TrayIconEvent;
 use tray_icon::menu::MenuEvent;
-use util::led_set_preset;
 // use wled_json_api_library::structures::state::State;
 // use wled_json_api_library::wled::Wled;
 mod config;
@@ -24,9 +20,8 @@ mod util;
 use crate::config::{calc_actual_config_file, load_config};
 use crate::ledfx::playpause;
 use crate::types::*;
-use crate::util::{calc_led_state_scheduled, led_set_brightness, update_wled_cache};
 
-const SERVICE_NAME: &str = "_wled._tcp.local.";
+// const SERVICE_NAME: &str = "_wled._tcp.local.";
 // const NO_SCHEDULE: LEDScheduleSpec = LEDScheduleSpec::None;
 
 fn main() {
@@ -59,10 +54,10 @@ fn main() {
         }
     };
 
-    let tray_svc_config = svc_config.clone();
+    let _tray_svc_config = svc_config.clone();
     let (enabled_send, mut enabled_recv) = tokio::sync::broadcast::channel::<bool>(1);
     let (quit_send, mut quit_recv) = tokio::sync::broadcast::channel::<bool>(1);
-    let enabled_send_svcmon = enabled_send.clone();
+    let _enabled_send_svcmon = enabled_send.clone();
 
     if let Some(baseurl) = svc_config.clone().ledfx_url {
         thread::spawn(move || {
@@ -95,14 +90,14 @@ fn main() {
         "NONE".to_string()
     };
 
-    let mut next_ledfx_transition = svc_config.next_ledfx_transition();
+    let _next_ledfx_transition = svc_config.next_ledfx_transition();
     info!("==========================================================");
     info!("= ledfx-trigger booting...");
     info!("==========================================================");
     info!("Loaded config: {:?}", &svc_config);
 
     util::cfg_logging(svc_config.loglevel, svc_config.logfile.clone());
-    let mdns = ServiceDaemon::new().expect("Failed to create daemon");
+    let _mdns = ServiceDaemon::new().expect("Failed to create daemon");
     info!("Tray icon quit menu id is {}", quit_menu_id);
 
     // OK, now we setup the monitoring...
@@ -115,8 +110,7 @@ fn main() {
 
     let mut quiet_cycles: usize = 0;
     let mut inotify_buffer = [0u8; 4096];
-    let mut last_command_by_name: HashMap<String, (f32, Option<u16>, Option<bool>)> =
-        HashMap::new();
+    let _last_command_by_name: HashMap<String, (f32, Option<u16>, Option<bool>)> = HashMap::new();
 
     loop {
         loop {
@@ -146,7 +140,7 @@ fn main() {
                 }
             }
 
-            let now = std::time::Instant::now();
+            let _now = std::time::Instant::now();
             if playing_arc.load(Relaxed) {
                 debug!("arc says we are playing.");
                 quiet_cycles = 0;
@@ -176,11 +170,11 @@ fn main() {
                 debug!("No LEDFX url found. Skipping updates.");
             }
 
-            let today: chrono::DateTime<chrono::Local> = chrono::Local::now();
-            let mut leds_ok: usize = 0;
-            let mut leds_noconfig: usize = 0;
-            let leds_ignore: usize = 0;
-            let mut leds_err: usize = 0;
+            let _today: chrono::DateTime<chrono::Local> = chrono::Local::now();
+            let _leds_ok: usize = 0;
+            let _leds_noconfig: usize = 0;
+            let _leds_ignore: usize = 0;
+            let _leds_err: usize = 0;
             {
                 // Locking die arc...
                 if should_die {
