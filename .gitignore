@@ -1,5 +1,9 @@
 /target
+/deps
+/.zed
+/_webview
 ledfx-trigger-*.rs
 systray_ev.rs
 *._rs
 resources/ledfx_logo_db*
+resources/ledfx_logo_active_transparent*

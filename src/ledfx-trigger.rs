@@ -76,7 +76,6 @@ fn main() {
         "NONE".to_string()
     };
 
-    let _next_ledfx_transition = svc_config.next_ledfx_transition();
     info!("==========================================================");
     info!("= ledfx-trigger booting...                               =");
     info!("==========================================================");
@@ -88,6 +87,9 @@ fn main() {
 
     // OK, now we setup the monitoring...
     let (_stream, playing_arc) = if let Some(ref audio_config) = svc_config.audio_config {
+        warn!(
+            "ALSA/Pulse configuration results in some log spam. You can ignore it safely in most cases."
+        );
         let (mon, playing_arc) = monitor::setup_audio(&audio_config).unwrap();
         (Some(mon), playing_arc)
     } else {
@@ -102,6 +104,7 @@ fn main() {
         loop {
             if let Ok(event) = MenuEvent::receiver().try_recv() {
                 info!("Menu Event {event:?}.. is it: {:?}?", quit_menu_id);
+                println!("CLEEK");
                 if event.id.0 == quit_menu_id {
                     should_die = true;
                 }

@@ -1,4 +1,4 @@
-use chrono::{Datelike, NaiveTime};
+use chrono::Datelike; //, NaiveTime};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 use std::net::IpAddr;
@@ -138,6 +138,7 @@ impl Default for WLEDScheduleItem {
     }
 }
 
+#[allow(unused)]
 pub type WLEDSchedule = Vec<WLEDScheduleItem>;
 
 fn default_input_device() -> String {
@@ -153,6 +154,7 @@ fn default_cycle() -> f64 {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[allow(unused)]
 pub enum LEDScheduleSpec {
     Default,
     ByName(String),
@@ -160,6 +162,7 @@ pub enum LEDScheduleSpec {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[allow(unused)]
 pub struct LEDBrightnessConfig {
     pub schedule: LEDScheduleSpec,
     pub min_bri: u8,
@@ -185,12 +188,14 @@ pub enum CfgChangeAction {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[allow(unused)]
 pub struct VisualizationSchedule {
     pub start: ScheduleTime,
     pub end: ScheduleTime,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[allow(unused)]
 pub struct LedFxSchedule {
     pub from: ScheduleTime,
     pub until: ScheduleTime,
@@ -198,9 +203,9 @@ pub struct LedFxSchedule {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
-    pub lat: f32,
-    pub lon: f32,
-    pub leds: HashMap<String, LEDBrightnessConfig>,
+    //pub lat: f32,
+    //pub lon: f32,
+    //pub leds: HashMap<String, LEDBrightnessConfig>,
     // pub brightnesses: HashMap<String, (u8, u8)>,
     // pub transition_duration: i64, // How long it takes to go full dim from full bright
     pub loglevel: usize, //0: off, 1: error, 2: warn, 3: info, 4: debug, 5: pedantic
@@ -209,22 +214,23 @@ pub struct Config {
     pub audio_config: Option<AudioConfig>,
     pub ledfx_url: Option<String>,
     pub ledfx_idle_cycles: Option<usize>,
-    pub ledfx_schedule: Option<LedFxSchedule>,
+    //pub ledfx_schedule: Option<LedFxSchedule>,
     #[serde(default = "default_cycle")]
     pub cycle_seconds: f64,
-    #[serde(default = "default_schedule")]
-    pub schedule: HashMap<String, WLEDSchedule>,
+    //#[serde(default = "default_schedule")]
+    //pub schedule: HashMap<String, WLEDSchedule>,
     #[serde(default = "default_cfg_change")]
     pub restart_on_cfg_change: CfgChangeAction,
     #[serde(default = "default_tray_icon")]
     pub tray_icon: bool,
     pub bind_address: Option<String>,
-    pub vis_schedule: Option<VisualizationSchedule>,
+    //pub vis_schedule: Option<VisualizationSchedule>,
     #[serde(skip)]
     pub config_path: Option<PathBuf>,
 }
 
 impl Config {
+    /*
     pub fn next_ledfx_transition(&self) -> Option<(ScheduleTime, Option<bool>)> {
         match self.ledfx_schedule.clone() {
             Some(ledfx_schedule) => {
@@ -251,6 +257,7 @@ impl Config {
             None => None,
         }
     }
+    */
 }
 
 fn default_cfg_change() -> CfgChangeAction {
@@ -261,6 +268,7 @@ fn default_tray_icon() -> bool {
     false
 }
 
+#[allow(unused)]
 pub(crate) fn default_schedule() -> HashMap<String, WLEDSchedule> {
     HashMap::from([(
         "default".to_string(),
@@ -284,10 +292,10 @@ fn default_logfile() -> Option<PathBuf> {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            lat: Default::default(),
-            lon: Default::default(),
+            //lat: Default::default(),
+            //lon: Default::default(),
             // exclusions: Default::default(),
-            leds: HashMap::new(),
+            //leds: HashMap::new(),
             // brightnesses: Default::default(),
             // transition_duration: Default::default(),
             loglevel: Default::default(),
@@ -295,13 +303,13 @@ impl Default for Config {
             audio_config: Default::default(),
             ledfx_url: Default::default(),
             ledfx_idle_cycles: Default::default(),
-            ledfx_schedule: Default::default(),
+            //ledfx_schedule: Default::default(),
             cycle_seconds: Default::default(),
-            schedule: default_schedule(),
+            //schedule: default_schedule(),
             restart_on_cfg_change: default_cfg_change(),
             tray_icon: false,
             bind_address: None,
-            vis_schedule: None,
+            //vis_schedule: None,
             config_path: None,
         }
     }
