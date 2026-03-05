@@ -27,7 +27,6 @@ fn main() {
     let mut state_self_enabled = true;
     let mut should_die = false;
 
-    let mut inotify = Inotify::init().expect("Failed to initialize inotify");
     let cfgfile = match args.config_path.clone() {
         Some(cfgpath) => cfgpath,
         None => calc_actual_config_file(None),
@@ -41,6 +40,8 @@ fn main() {
             std::process::exit(-1);
         }
     };
+
+    let mut inotify = Inotify::init().expect("Failed to initialize inotify");
     inotify
         .watches()
         .add(
