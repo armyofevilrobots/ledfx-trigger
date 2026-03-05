@@ -51,5 +51,11 @@ scratch my own itch, but it might be useful for other people with a little elbow
 
 There is a file named `dependencies.arch.txt` which contains a list of packages required
 for this program to work. Most are installed by default, but this makes it explicit if you
-have any linker errors on startup. `pacman -Syu $(cat dependencies.arch.txt)` should do
+have any linker errors on startup. `pacman -Su --needed $(cat dependencies.arch.txt)` should do
 the trick for you in that case.
+
+Note the second: No AI was used anywhere in the creation of this software. This is
+artisanal free-range developer built software. It takes care of the plumbing so that
+YOU (a human, honest) can make art.
+
+See also: [SMBC: Sad](https://www.smbc-comics.com/comic/sad-2).

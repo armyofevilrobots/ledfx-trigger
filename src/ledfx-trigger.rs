@@ -32,13 +32,6 @@ fn main() {
         Some(cfgpath) => cfgpath,
         None => calc_actual_config_file(None),
     };
-    inotify
-        .watches()
-        .add(
-            cfgfile,
-            WatchMask::MODIFY | WatchMask::CREATE | WatchMask::DELETE,
-        )
-        .expect("Failed to add inotify watch");
 
     let mut svc_config = match load_config(args.config_path.clone()) {
         Ok(config) => config,
@@ -48,6 +41,13 @@ fn main() {
             std::process::exit(-1);
         }
     };
+    inotify
+        .watches()
+        .add(
+            cfgfile,
+            WatchMask::MODIFY | WatchMask::CREATE | WatchMask::DELETE,
+        )
+        .expect("Failed to add inotify watch");
 
     let _tray_svc_config = svc_config.clone();
     let (enabled_send, mut enabled_recv) = tokio::sync::broadcast::channel::<bool>(1);
@@ -108,6 +108,10 @@ fn main() {
                     should_die = true;
                 }
             }
+            if should_die {
+                warn!("Shutdown flag is set. Exiting.");
+                break;
+            }
             if let Ok(enabled) = enabled_recv.try_recv() {
                 info!("Got a SELF enabled message of: {}", enabled);
                 state_self_enabled = enabled;
@@ -159,13 +163,6 @@ fn main() {
             let _leds_noconfig: usize = 0;
             let _leds_ignore: usize = 0;
             let _leds_err: usize = 0;
-            {
-                // Locking die arc...
-                if should_die {
-                    warn!("I should die now!");
-                    break;
-                }
-            } // Locking die arc...
 
             sleep(Duration::from_secs_f64(svc_config.cycle_seconds));
         } // Loop wleds
@@ -197,11 +194,6 @@ fn main() {
                 }
             }
         }
-        {
-            if should_die {
-                break;
-            }
-        } // Locking die arc...
         if should_die {
             break;
         }

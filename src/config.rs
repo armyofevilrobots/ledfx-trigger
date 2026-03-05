@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 fn calc_config_dir() -> PathBuf {
     let mut homedir = dirs::home_dir().expect("Must have a $HOME dir set to run.");
-    homedir.push(".wled-doppler");
+    homedir.push(".ledfx-trigger");
     homedir
 }
 
@@ -32,10 +32,14 @@ fn bootstrap() -> Result<PathBuf> {
             // brightnesses: HashMap::new(),
             //leds: HashMap::new(),
             // transition_duration: 3600i64,
-            loglevel: 4,
+            loglevel: 2,
             logfile: None,
-            audio_config: None,
-            ledfx_url: None,
+            audio_config: Some(AudioConfig {
+                input_device: "default".to_string(),
+                jack: false,
+                ledfx_threshold_db: Some(-64.0),
+            }),
+            ledfx_url: Some("http://localhost:8888".to_string()),
             ledfx_idle_cycles: Some(3),
             cycle_seconds: 10.0,
             /*
